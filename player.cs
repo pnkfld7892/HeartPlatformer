@@ -3,11 +3,12 @@ using System;
 
 public partial class player : CharacterBody2D
 {
-    public const float Speed = 100.0f;
-    public const float JumpVelocity = -300.0f; // Get the gravity from the project settings to be synced with RigidBody nodes.
+
+    [Export]
+    public PlayerMovementData MovementData { get; set; }
+
+
     public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
-    public const float Acceleration = 600.0f;
-    public const float Friction = 1000.0f;
     private AnimatedSprite2D playerSprite;
     private Timer coyoteJumpTimer;
 
@@ -34,23 +35,38 @@ public partial class player : CharacterBody2D
         }
         else
         {
-            ApplyFriction(ref velocity, delta);
+            if (IsOnFloor())
+            {
+                ApplyFriction(ref velocity, delta);
+            }
+            else
+            {
+                ApplyAirResistance(ref velocity, delta);
+            }
         }
+
+
 
         UpdateAnimations(inputAxis);
         Velocity = velocity;
         var wasOnFloor = IsOnFloor();
         MoveAndSlide();
-        var justLeftLedge = wasOnFloor && !IsOnFloor() && velocity.Y >=0;
-        if(justLeftLedge){
+        var justLeftLedge = wasOnFloor && !IsOnFloor() && velocity.Y >= 0;
+        if (justLeftLedge)
+        {
             coyoteJumpTimer.Start();
         }
+    }
+
+    private void ApplyAirResistance(ref Vector2 velocity, double delta)
+    {
+        velocity.X = Mathf.MoveToward(velocity.X,0,MovementData.AirResistance * (float)delta);
     }
 
     private void ApplyGravity(ref Vector2 velocity, double delta)
     {
         if (!IsOnFloor())
-            velocity.Y += gravity * (float)delta;
+            velocity.Y += gravity * (float)delta * MovementData.GravityScale;
     }
 
     private void HandleJump(ref Vector2 velocity)
@@ -58,14 +74,14 @@ public partial class player : CharacterBody2D
         if (IsOnFloor() || coyoteJumpTimer.TimeLeft > 0.0)
         {
             if (Input.IsActionJustPressed("ui_up"))
-                velocity.Y = JumpVelocity;
+                velocity.Y = MovementData.JumpVelocity;
         }
 
-        if(!IsOnFloor())
+        if (!IsOnFloor())
         {
-            if (Input.IsActionJustReleased("ui_up") && velocity.Y < JumpVelocity / 2)
+            if (Input.IsActionJustReleased("ui_up") && velocity.Y < MovementData.JumpVelocity / 2)
             {
-                velocity.Y = JumpVelocity / 2;
+                velocity.Y = MovementData.JumpVelocity / 2;
             }
         }
     }
@@ -73,14 +89,14 @@ public partial class player : CharacterBody2D
     private void HandleAcceleration(ref Vector2 velocity, Vector2 inputAxis, double delta)
     {
         velocity.X = Mathf.MoveToward(velocity.X,
-                Speed * inputAxis.X,
-                Acceleration * (float)delta);
-        velocity.X = inputAxis.X * Speed;
+                MovementData.Speed * inputAxis.X,
+                MovementData.Acceleration * (float)delta);
+        velocity.X = inputAxis.X * MovementData.Speed;
     }
 
     private void ApplyFriction(ref Vector2 velocity, double delta)
     {
-        velocity.X = Mathf.MoveToward(Velocity.X, 0, Friction * (float)delta);
+        velocity.X = Mathf.MoveToward(Velocity.X, 0, MovementData.Friction * (float)delta);
     }
 
 
@@ -89,7 +105,7 @@ public partial class player : CharacterBody2D
 
         if (inputAxis != Vector2.Zero)
         {
-            playerSprite.FlipH = inputAxis.X < 0; 
+            playerSprite.FlipH = inputAxis.X < 0;
             playerSprite.Play("run");
         }
         else
@@ -97,7 +113,8 @@ public partial class player : CharacterBody2D
             playerSprite.Play("idle");
         }
 
-        if(!IsOnFloor()){
+        if (!IsOnFloor())
+        {
             playerSprite.Play("jump");
         }
     }
