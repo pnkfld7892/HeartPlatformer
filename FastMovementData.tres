@@ -1,0 +1,11 @@
+[gd_resource type="Resource" load_steps=2 format=3 uid="uid://hv4p4gs7w7h6"]
+
+[ext_resource type="Script" path="res://PlayerMovementData.cs" id="1_nxown"]
+
+[resource]
+script = ExtResource("1_nxown")
+Speed = 120.0
+Acceleration = 2000.0
+Friction = 1000.0
+JumpVelocity = -400.0
+GravityScale = 1.0
