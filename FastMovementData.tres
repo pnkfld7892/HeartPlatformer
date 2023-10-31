@@ -9,3 +9,6 @@ Acceleration = 2000.0
 Friction = 1000.0
 JumpVelocity = -400.0
 GravityScale = 1.0
+AirResistance = 200.0
+AirAcceleration = 400.0
+AirJumpMultiplier = 0.9

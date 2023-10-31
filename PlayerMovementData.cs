@@ -17,5 +17,10 @@ public partial class PlayerMovementData : Resource
     public float GravityScale = 1.0f;
     [Export]
     public float AirResistance = 200.0f;
+    [Export]
+    public float AirAcceleration = 400.0f;
+    [Export]
+    public float AirJumpMultiplier = 0.8f;
     
+
 }
